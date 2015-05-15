@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<cfg>
+    <server>
+        <path>http://...</path>
+        <token>token</token>
+        <public_key>public_key</public_key>
+    </server>
+    <message>
+        <from>user@domain</from>
+        <to>
+            <email>email</email>
+            <email>email</email>
+        </to>
+    </message>
+    <smtp>
+        <server>domain</server>
+        <port>port</port>
+        <username>username</username>
+        <password>password</password>
+    </smtp>
+    <dashing>
+        <url>http://...</url>
+        <token>token</token>
+    </dashing>
+    <ad>
+        <ou>
+            <staff>Staff</staff>
+            <students>Students</students>
+        </ou>
+    </ad>
+    <patch>
+        <folder>folder</folder>
+        <filedataformat>filedataformat</filedataformat>
+    </patch>
+</cfg>
