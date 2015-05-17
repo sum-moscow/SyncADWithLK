@@ -12,7 +12,7 @@
 . $LocalDir\Load-Module.ps1
 . $LocalDir\New-ADPatch.ps1
 . $LocalDir\Get-FreeADLogin.ps1
-. $LocalDir\New-SWRandomPassword.ps1
+. $LocalDir\New-RandomPassword.ps1
 . $localDir\Get-Translit.ps1
 
 if (!(Load-Module DashingLogger)){

@@ -62,7 +62,7 @@ foreach ($User in $Users){
     $SAM = $Null
     $Role = $Null
     $SAM = $Null
-    $Department = $Null # = the deepest OU
+    $Department = $Null # = the deepest OU$
     [System.Collections.ArrayList]$OUs = $Null
 
     $UserTypeOU = New-Object 'System.Collections.Generic.Dictionary[String,String]'
@@ -115,7 +115,7 @@ foreach ($User in $Users){
     }
 
     if (!$Id){
-        Log-Warning("!User ID is NULL: id=$($User.id)")
+        Log-Warning("User ID is NULL: id=$($User.id)")
         continue
     }
 
@@ -125,10 +125,14 @@ foreach ($User in $Users){
     $OUs.Reverse()
 
     $Company = "ФГБОУ ВПО «Государственный университет управления»"
-    New-ADPatch -FirstName  $User.first_name -LastName $User.last_name -MiddleName $User.middle_name `
+    try { 
+        New-ADPatch -FirstName  $User.first_name -LastName $User.last_name -MiddleName $User.middle_name `
              -OUs $OUs -Title $Role -Company $Company -EmployeeNumber $Id -EmployeeID $user.id `
              -Avatar $User.avatar -Enabled $user.active -SAM $SAM -Department $Department `
              -Domain $Domain -Country RU
+    } catch {
+        Log-Warning("Can't sync user with ID: id=$($User.id)")
+    }
 }
 
 
