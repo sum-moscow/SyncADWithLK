@@ -29,7 +29,7 @@ $Resource = "$($C.server.path)/changedSince?token=$($C.server.token)&time=$time&
 try {
     $RawText = (curl "$Resource").Content
 } catch {
-    Log-Critical("Can't download users: ") -End
+    Log-Critical("Can't download users: $($_.Exception.Message)") -End
     exit    
 }
 
@@ -41,7 +41,7 @@ $Jsonserial.MaxJsonLength = 100000000
 try {
     $Json = $Jsonserial.DeserializeObject($RawText)
 } catch {
-    Log-Critical("Can't deserialize downloaded data") -End
+    Log-Critical("Can't deserialize downloaded data: $($_.Exception.Message)") -End
     exit    
 }
 
@@ -131,7 +131,7 @@ foreach ($User in $Users){
              -Avatar $User.avatar -Enabled $user.active -SAM $SAM -Department $Department `
              -Domain $Domain -Country RU
     } catch {
-        Log-Warning("Can't sync user with ID: id=$($User.id)")
+        Log-Warning("Can't sync user with ID: id=$($User.id): $($_.Exception.Message)")
     }
 }
 
