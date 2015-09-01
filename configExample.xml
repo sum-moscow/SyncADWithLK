@@ -42,5 +42,7 @@
     <patch>
         <folder>C:\folder</folder>
         <filedataformat>dd.MM.yyyy</filedataformat>
+        <warningThreshold>100</warningThreshold>
+        <privilegedGroup>privilegedGroup</privilegedGroup>
     </patch>
 </cfg>

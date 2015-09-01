@@ -17,10 +17,16 @@ Log-Begin
 
 # Helper function
 [System.Collections.ArrayList]$global:FullPatch = @()
+$global:isPrivilegedGroup = $false
 function Patch{
-   if (!$global:FullPatch.Contains($args[0])){
-       [void]$global:FullPatch.Add($args[0])
-   }
+    $Message = $args[0]
+    if (!$global:FullPatch.Contains($Message)){
+        if ($global:isPrivilegedGroup){
+            $Message = "# $Message"
+        }
+            
+        [void]$global:FullPatch.Add($Message)
+    }
 }
 
 <#############################>Log("Downloading users")<##########################################>
@@ -159,4 +165,29 @@ foreach ($User in $Users){
 $Date = Get-Date -Format $C.patch.filedataformat
 $Filename = "$($C.patch.folder)\$Date.adpatch"
 echo $global:FullPatch > $Filename
+
+<#############################>Log("Sending patch via SMTP")<#####################################>
+
+$SMTP = New-Object System.Net.Mail.SmtpClient($C.smtp.server, $C.smtp.port);
+$SMTP.EnableSSL = $true
+$SMTP.Credentials = New-Object System.Net.NetworkCredential($C.smtp.username, $C.smtp.password);
+
+$Message = New-Object System.Net.Mail.MailMessage
+$Message.Subject = "LKAD Sync script ($date)"
+$Message.From = $C.message.from
+foreach ($MailTo in $C.message.to.ChildNodes ){
+    $Message.to.add($MailTo.InnerText)
+}
+$MessageBody = "Full Patch in attachment"
+
+$FilenameTxtExtension = "$Filename.txt"
+Copy-Item $Filename -Destination $FilenameTxtExtension
+$Message.Attachments.Add((Resolve-Path $FilenameTxtExtension).Path)
+  
+$Message.Body = $MessageBody
+$SMTP.Send($Message)
+
+$Message.Dispose()
+Remove-Item $FilenameTxtExtension
+
 Log-Stop
