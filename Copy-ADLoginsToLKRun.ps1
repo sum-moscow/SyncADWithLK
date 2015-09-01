@@ -1,4 +1,5 @@
-﻿<#
+﻿
+<#
 .DESCRIPTION
    Upload user logins to LK (json)
 .AUTHOR   Zubarev Alexander aka Strike (av_zubarev@guu.ru)
@@ -17,8 +18,21 @@ Log-Set -Service "CopyADLoginsToLK" -Url $C.dashing.url -Token $C.dashing.token
 Log-Begin
 
 <#############################>Log("Downloading users")<##########################################>
+foreach($Domain in $C.server.domains.ChildNodes){
+    if ($Domain.env -eq "PROD") {
+        break;
+    }
+    $Domain = $null
+}
+
+if (!$Domain){
+    Log-Critical("Can't find domain in Config") -End
+    exit
+}
+
 $time = "1";
-$Resource = "$($C.server.path)/loginIsNull?token=$($C.server.token)&time=$time&public_key=$($C.server.public_key)&since=1"
+$FullPath = "$($Domain.protocol)://$($Domain.fqdn)/$($C.server.path)"
+$Resource = "$FullPath/loginIsNull?token=$($C.server.token)&time=$time&public_key=$($C.server.public_key)&since=1"
 try {
     $RawText = (curl "$Resource").Content
 } catch {
@@ -49,7 +63,6 @@ if ($Json.status){
 foreach ($User in $Users){
     Log("$($Users.IndexOf($User)+1) of $($Users.count)")
 
-    $UserTypeOU = New-Object 'System.Collections.Generic.Dictionary[String,String]'
     if ($User.is_staff){
         $Id = $User."1c_id"
     } elseif ($User.is_student){
@@ -64,19 +77,20 @@ foreach ($User in $Users){
         continue
     }
 
-    $U = Get-ADUser -Filter 'EmployeeNumber -eq $Id'
+    $LocalUser = Get-ADUser -Filter 'EmployeeNumber -eq $Id'
 
-    if ($U.count -ne 1){
+    if ($LocalUser.count -ne 1){
         Log-Warning("Problem with user: id=$($User.id)")
         continue   
     }
 
-    $UPN = $U.UserPrincipalName
+    $Body = "login=$($LocalUser.UserPrincipalName)"
 
-    $Body = "login=$UPN"       
-    $Resource = "$($C.server.path)/$($User.id)?token=$($C.server.token)&public_key=$($C.server.public_key)&time=1"
-    $RawText = Invoke-RestMethod -Method Put -Uri "$Resource" -Body $Body
-
+    foreach($Domain in $C.server.domains.ChildNodes){ 
+        $FullPath = "$($Domain.protocol)://$($Domain.fqdn)/$($C.server.path)"
+        $Resource = "$FullPath/$($User.id)?token=$($C.server.token)&public_key=$($C.server.public_key)&time=1"
+        $RawText = Invoke-RestMethod -Method Put -Uri "$Resource" -Body $Body
+    }
 }
 
 Log-Stop

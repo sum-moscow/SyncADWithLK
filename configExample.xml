@@ -1,25 +1,36 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <cfg>
     <server>
-        <path>http://...</path>
+        <domains>
+            <domain env='PROD'>
+                <protocol>http</protocol>
+                <fqdn>contoso.com</fqdn>
+            </domain>
+            <domain env='DEV'>
+                <protocol>http</protocol>
+                <fqdn>dev.contoso.com</fqdn>
+            </domain>
+        </domains>
+        <path>path</path>
         <token>token</token>
         <public_key>public_key</public_key>
     </server>
     <message>
-        <from>user@domain</from>
+        <from>admin@contosom.com</from>
         <to>
-            <email>email</email>
-            <email>email</email>
+            <email>1@contosom.com</email>
+            <email>2@contosom.com</email>
+            <email>n@contosom.com</email>
         </to>
     </message>
     <smtp>
-        <server>domain</server>
-        <port>port</port>
-        <username>username</username>
+        <server>outlook.office365.com</server>
+        <port>587</port>
+        <username>admin@contosom.com</username>
         <password>password</password>
     </smtp>
     <dashing>
-        <url>http://...</url>
+        <url>http://dashing.contoso.com</url>
         <token>token</token>
     </dashing>
     <ad>
@@ -29,7 +40,7 @@
         </ou>
     </ad>
     <patch>
-        <folder>folder</folder>
-        <filedataformat>filedataformat</filedataformat>
+        <folder>C:\folder</folder>
+        <filedataformat>dd.MM.yyyy</filedataformat>
     </patch>
 </cfg>

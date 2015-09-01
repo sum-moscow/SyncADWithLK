@@ -18,9 +18,11 @@ Log-Begin
 
 # yesterday
 $Date = (Get-Date).AddDays(-1).ToString($C.patch.filedataformat)
+# today
+#$Date = (Get-Date).ToString($C.patch.filedataformat)
+
 $FileName = "$($C.patch.folder)\$Date.adpatch"
 $Lines = Get-Content $FileName
-
 
 foreach ($Line in $Lines) {
     Log("$($Lines.IndexOf($Line)+1) of $($Lines.count): $Line")        

@@ -24,8 +24,21 @@ function Patch{
 }
 
 <#############################>Log("Downloading users")<##########################################>
+foreach($Domain in $C.server.domains.ChildNodes){
+    if ($Domain.env -eq "PROD") {
+        break;
+    }
+    $Domain = $null
+}
+
+if (!$Domain){
+    Log-Critical("Can't find domain in Config.xml")
+    exit
+}
+
 $time = "1";
-$Resource = "$($C.server.path)/changedSince?token=$($C.server.token)&time=$time&public_key=$($C.server.public_key)&since=1"
+$FullPath = "$($Domain.protocol)://$($Domain.fqdn)/$($C.server.path)"
+$Resource = "$FullPath/changedSince?token=$($C.server.token)&time=$time&public_key=$($C.server.public_key)&since=1"
 try {
     $RawText = (curl "$Resource").Content
 } catch {
@@ -71,11 +84,13 @@ foreach ($User in $Users){
         $UserTypeOU.Add("name",$C.ad.ou.staff)
         $Id = $User."1c_id"
         
+        #Find user main role
         $PluralistOUs = $Null
         $PluralistRole = $Null
 
         $DisabledOUs = $Null
-        $DisabledRole = $Null     
+        $DisabledRole = $Null
+        
         foreach ($Position in $User.staff){
             if ($Position.active){
                 if ($Position.main_role) {
@@ -100,6 +115,11 @@ foreach ($User in $Users){
             $OUs = $DisabledOUs
             $Role = $DisabledRole
         } 
+
+        if (!$OUs){
+            Log-Warning("User without OU: id=$($User.id)")
+            continue            
+        } 
     } elseif ($User.is_student){
         $Domain = "edu.guu.ru"
         $Role = "Студент"
@@ -108,7 +128,6 @@ foreach ($User in $Users){
         $SAM = "student_$($User.personal_file)"
         $UserTypeOU.Add("name",$C.ad.ou.students)
         $Id = $User.personal_file
-        
     } else {
         Log-Warning("User type not found: id=$($User.id), is_staff=$($User.is_staff), is_student=$($User.is_student)")
         continue
