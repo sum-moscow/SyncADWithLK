@@ -49,9 +49,12 @@ function Get-FreeADLogin{
             $SAM = $false
         }
 
+        
+
         if ( (Get-ADUser -Filter {UserPrincipalName -eq $UPN -Or 
                                   SamAccountName -eq $SAM -or
-                                  ProxyAddresses -eq $UPN}
+                                  ProxyAddresses -eq "SMTP:$UPN" -or
+                                  ProxyAddresses -eq "smtp:$UPN" }
            ).UserPrincipalName.count -eq 0 ) {
 
            Return @{"UPN"=$UPN;"SAM" =$SAM}
