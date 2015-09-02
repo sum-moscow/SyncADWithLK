@@ -82,6 +82,8 @@ foreach ($User in $Users){
     $Role = $Null
     $SAM = $Null
     $Department = $Null # = the deepest OU$
+    $PasswordPath = $Null
+    $UPNPostfix = $Null
     [System.Collections.ArrayList]$OUs = $Null
 
     $UserTypeOU = New-Object 'System.Collections.Generic.Dictionary[String,String]'
@@ -134,6 +136,8 @@ foreach ($User in $Users){
         $SAM = "student_$($User.personal_file)"
         $UserTypeOU.Add("name",$C.ad.ou.students)
         $Id = $User.personal_file
+        $PasswordPath = $C.ad.passwordPath
+        $UPNPostfix = "_$(Get-Date($User.begin_study) -UFormat %y)"
     } else {
         Log-Warning("User type not found: id=$($User.id), is_staff=$($User.is_staff), is_student=$($User.is_student)")
         continue
@@ -152,9 +156,9 @@ foreach ($User in $Users){
     $Company = "ФГБОУ ВПО «Государственный университет управления»"
     try { 
         New-ADPatch -FirstName  $User.first_name -LastName $User.last_name -MiddleName $User.middle_name `
-             -OUs $OUs -Title $Role -Company $Company -EmployeeNumber $Id -EmployeeID $user.id `
-             -Avatar $User.avatar -Enabled $user.active -SAM $SAM -Department $Department `
-             -Domain $Domain -Country RU
+             -OUs $OUs -Title $Role -Company $Company -EmployeeNumber $Id -EmployeeID $User.id `
+             -Avatar $User.avatar -Enabled $User.active -SAM $SAM -Department $Department `
+             -Domain $Domain -Country RU -PasswordPath $PasswordPath -UPNPostfix $UPNPostfix
     } catch {
         Log-Warning("Can't sync user with ID: id=$($User.id): $($_.Exception.Message)")
     }

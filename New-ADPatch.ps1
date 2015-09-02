@@ -51,7 +51,16 @@ function New-ADPatch {
         [boolean] $Enabled,
 
         [parameter(Mandatory = $false)]
-        [string] $Country
+        [string] $Country, 
+
+        [parameter(Mandatory = $false)]
+        [string] $PasswordPath,
+
+        [parameter(Mandatory = $false)]
+        [string] $UPNPrefix,
+
+        [parameter(Mandatory = $false)]
+        [string] $UPNPostfix
     )
 
     $Name = $LastName + " " + $FirstName
@@ -105,12 +114,18 @@ function New-ADPatch {
 
     $ADUser = Get-ADUser -Filter { EmployeeNumber -eq $EmployeeNumber } -Properties *
     if (!$ADUser){
-        $Login = Get-FreeADLogin -FirstName $FirstName -LastName $LastName -MiddleName $MiddleName -Domain $Domain 
+        $Login = Get-FreeADLogin -FirstName $FirstName -LastName $LastName -MiddleName $MiddleName -Domain $Domain -UPNPrefix $UPNPrefix -UPNPostfix $UPNPostfix
+        if ($SAM){
+            $Login.SAM = $SAM
+        }
         Log("Create user $Id with UPN: $($Login.UPN), SAM: $($Login.SAM)")
         Patch("New-ADUser -Name '$Name' -UserPrincipalName $($Login.UPN) -EmailAddress $($Login.UPN) -SamAccountName $($Login.SAM) -EmployeeNumber '$Id' -ChangePasswordAtLogon `$false -Path '$Path'")
         # only for "Enabled"
         $Password = New-RandomPassword
         Patch("Set-ADAccountPassword -Identity $($Login.SAM)  -NewPassword (ConvertTo-SecureString -AsPlainText '$Password' -Force)")
+        if ($PasswordPath){
+            echo "$($Login.UPN),$Password" >> $PasswordPath 
+        }
         $ADUser = @{Name=$SetToUser.Name;SamAccountName=$Login.SAM;DistinguishedName=$DistinguishedName}
     }
 

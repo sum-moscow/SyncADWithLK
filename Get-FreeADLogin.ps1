@@ -17,7 +17,13 @@ function Get-FreeADLogin{
         [String]$Domain,
 
         [parameter(Mandatory = $false)]
-        [Switch]$NoCkeckSAM
+        [Switch]$NoCkeckSAM,
+
+        [parameter(Mandatory = $false)]
+        [string] $UPNPrefix,
+
+        [parameter(Mandatory = $false)]
+        [string] $UPNPostfix
     )
 
     $trFirst = (Get-Translit $FirstName.Trim()).toLower()[0]
@@ -37,7 +43,7 @@ function Get-FreeADLogin{
     foreach ($SAM in $SAMs){
         $SAM = ($SAM.Replace(" ","_") -replace "^\W+" ) -replace "^_"
 
-        $UPN = "$SAM@$Domain"
+        $UPN = "$UPNPrefix$SAM$UPNPostfix@$Domain"
         
         # SAM is not used
         if($SAM.Length -gt 20){
