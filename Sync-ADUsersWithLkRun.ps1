@@ -84,6 +84,7 @@ foreach ($User in $Users){
     $Department = $Null # = the deepest OU$
     $PasswordPath = $Null
     $UPNPostfix = $Null
+    $NamePrefix = $Null
     [System.Collections.ArrayList]$OUs = $Null
 
     $UserTypeOU = New-Object 'System.Collections.Generic.Dictionary[String,String]'
@@ -138,6 +139,7 @@ foreach ($User in $Users){
         $Id = $User.personal_file
         $PasswordPath = $C.ad.passwordPath
         $UPNPostfix = "_$(Get-Date($User.begin_study) -UFormat %y)"
+        $NamePrefix = "Студент $($User.personal_file) "
     } else {
         Log-Warning("User type not found: id=$($User.id), is_staff=$($User.is_staff), is_student=$($User.is_student)")
         continue
@@ -158,7 +160,8 @@ foreach ($User in $Users){
         New-ADPatch -FirstName  $User.first_name -LastName $User.last_name -MiddleName $User.middle_name `
              -OUs $OUs -Title $Role -Company $Company -EmployeeNumber $Id -EmployeeID $User.id `
              -Avatar $User.avatar -Enabled $User.active -SAM $SAM -Department $Department `
-             -Domain $Domain -Country RU -PasswordPath $PasswordPath -UPNPostfix $UPNPostfix
+             -Domain $Domain -Country RU -PasswordPath $PasswordPath -UPNPostfix $UPNPostfix `
+             -NamePrefix $NamePrefix
     } catch {
         Log-Warning("Can't sync user with ID: id=$($User.id): $($_.Exception.Message)")
     }

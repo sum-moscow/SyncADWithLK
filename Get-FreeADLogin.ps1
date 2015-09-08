@@ -45,7 +45,7 @@ function Get-FreeADLogin{
 
         $UPN = "$UPNPrefix$SAM$UPNPostfix@$Domain"
         
-        # SAM is not used
+        # SAM is not used by users, but need for system
         if($SAM.Length -gt 20){
             $SAM = $SAM.Substring(0, 20)
         }

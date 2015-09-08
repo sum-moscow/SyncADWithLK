@@ -20,6 +20,15 @@ function New-ADPatch {
         [parameter(Mandatory = $false)]
         [string] $MiddleName,
 
+        [parameter(Mandatory = $false)]
+        [string] $Name,
+
+        [parameter(Mandatory = $false)]
+        [string] $NamePrefix,
+
+        [parameter(Mandatory = $false)]
+        [string] $NamePostfix,
+
         [parameter(Mandatory = $true)]
         [string] $Domain,
                 
@@ -63,10 +72,22 @@ function New-ADPatch {
         [string] $UPNPostfix
     )
 
-    $Name = $LastName + " " + $FirstName
+    if (!$Name){
+        $Name = $LastName + " " + $FirstName
+
+        if ($MiddleName){
+            $Name += " " + $MiddleName
+        }
+        
+        $Name = $NamePrefix + $Name + $NamePostfix
+    }
+
+    if($Name.Length -ge 64){
+        $Name = $Name.Substring(0,63) + "…";
+    }
+
     $Initials = $FirstName[0] + "."
     if ($MiddleName){
-        $Name += " " + $MiddleName
         #non-breaking space
         $Initials += ' ' + $MiddleName[0] + "."
     }
@@ -119,7 +140,7 @@ function New-ADPatch {
             $Login.SAM = $SAM
         }
         Log("Create user $Id with UPN: $($Login.UPN), SAM: $($Login.SAM)")
-        Patch("New-ADUser -Name '$Name' -UserPrincipalName $($Login.UPN) -EmailAddress $($Login.UPN) -SamAccountName $($Login.SAM) -EmployeeNumber '$Id' -ChangePasswordAtLogon `$false -Path '$Path'")
+        Patch("New-ADUser -Name '$($SetToUser.Name)' -UserPrincipalName $($Login.UPN) -EmailAddress $($Login.UPN) -SamAccountName $($Login.SAM) -EmployeeNumber '$Id' -ChangePasswordAtLogon `$false -Path '$Path'")
         # only for "Enabled"
         $Password = New-RandomPassword
         Patch("Set-ADAccountPassword -Identity $($Login.SAM)  -NewPassword (ConvertTo-SecureString -AsPlainText '$Password' -Force)")
