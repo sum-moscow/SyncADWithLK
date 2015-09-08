@@ -131,7 +131,7 @@ foreach ($User in $Users){
         } 
     } elseif ($User.is_student){
         $Domain = "edu.guu.ru"
-        $Role = "Студент"
+        $Role = "Студент ($($User.work_full_path))"
         $Department = $User.institute
         $OUs = @()
         $SAM = "student_$($User.personal_file)"
