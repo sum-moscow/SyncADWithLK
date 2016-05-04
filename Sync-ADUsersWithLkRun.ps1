@@ -11,8 +11,11 @@
 $LocalDir = $MyInvocation.MyCommand.Definition | split-path -parent
 . $LocalDir\Import-AllRun.ps1
 
+# Date for filename
+$Date = Get-Date -Format $C.patch.filedataformat
+
 # Setup dashing
-Log-Set -Service "LKAD" -Url $C.dashing.url -Token $C.dashing.token 
+Log-Set -Service "LKAD" -Url $C.dashing.url -Token $C.dashing.token
 Log-Begin
 
 # Helper function
@@ -86,11 +89,14 @@ foreach ($User in $Users){
     $UPNPostfix = $Null
     $NamePrefix = $Null
     [System.Collections.ArrayList]$OUs = $Null
-
     $UserTypeOU = New-Object 'System.Collections.Generic.Dictionary[String,String]'
     if ($User.is_staff){
         $Domain = "guu.ru"
-        $UserTypeOU.Add("name",$C.ad.ou.staff)
+        if ($User.active){
+            $UserTypeOU.Add("name",$C.ad.ou.staff)
+        } else {
+            $UserTypeOU.Add("name",$C.ad.ou.dismissed)
+        }
         $Id = $User."1c_id"
         
         #Find user main role
@@ -128,13 +134,18 @@ foreach ($User in $Users){
         if (!$OUs){
             Log-Warning("User without OU: id=$($User.id)")
             continue            
-        } 
+        }
     } elseif ($User.is_student){
         $Domain = "edu.guu.ru"
         $Role = "Студент ($($User.work_full_path))"
         $Department = $User.institute
-        $OUs = @()
+        $OUs = @(@{"name"=$User.institute})
+        $OUs += @(@{"name"="$($User.qualification_name) ($($User.edu_form_name))"})
+        $OUs += @(@{"name"="$($User.course) курс"})
+        $OUs += @(@{"name"="$($User.group) группа"})
+
         $SAM = "student_$($User.personal_file)"
+
         $UserTypeOU.Add("name",$C.ad.ou.students)
         $Id = $User.personal_file
         $PasswordPath = $C.ad.passwordPath
@@ -150,7 +161,6 @@ foreach ($User in $Users){
         continue
     }
 
-    
     $OUs.Reverse()
     [void]$OUs.Add($UserTypeOU)
     $OUs.Reverse()
@@ -167,9 +177,7 @@ foreach ($User in $Users){
     }
 }
 
-
 <#############################>Log("Saving patch")<###############################################>
-$Date = Get-Date -Format $C.patch.filedataformat
 $Filename = "$($C.patch.folder)\$Date.adpatch"
 echo $global:FullPatch > $Filename
 
@@ -188,7 +196,9 @@ foreach ($MailTo in $C.message.to.ChildNodes ){
 $MessageBody = "Full Patch in attachment"
 
 $FilenameTxtExtension = "$Filename.txt"
-Copy-Item $Filename -Destination $FilenameTxtExtension
+
+#hide password
+($global:FullPatch -replace "(Set-ADAccountPassword .* -AsPlainText )'.*'( -Force)",'$1*******$2') > $FilenameTxtExtension
 $Message.Attachments.Add((Resolve-Path $FilenameTxtExtension).Path)
   
 $Message.Body = $MessageBody

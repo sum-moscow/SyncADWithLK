@@ -11,19 +11,22 @@
 
 # Check only UPN
 function Get-FreeADLogin{
-     Param (        [parameter(Mandatory = $true)]        [String]$FirstName,        [parameter(Mandatory = $true)]        [String]$LastName,        [parameter(Mandatory = $false)]        [String]$MiddleName,
+     Param (        [parameter(Mandatory = $true)]        [String]$FirstName,        [parameter(Mandatory = $true)]        [String]$LastName,        [parameter(Mandatory = $false)]        [String]$MiddleName = $Null,
 
         [parameter(Mandatory = $true)]
         [String]$Domain,
 
         [parameter(Mandatory = $false)]
-        [Switch]$NoCkeckSAM,
+        [Switch]$NoCkeckSAM = $Null,
 
         [parameter(Mandatory = $false)]
-        [string] $UPNPrefix,
+        [string] $UPNPrefix = $Null,
 
         [parameter(Mandatory = $false)]
-        [string] $UPNPostfix
+        [string] $UPNPostfix = $Null,
+
+        [parameter(Mandatory = $false)]
+        $IgnoreLogins = $Null
     )
 
     $trFirst = (Get-Translit $FirstName.Trim()).toLower()[0]
@@ -63,7 +66,14 @@ function Get-FreeADLogin{
                                   ProxyAddresses -eq "smtp:$UPN" }
            ).UserPrincipalName.count -eq 0 ) {
 
-           Return @{"UPN"=$UPN;"SAM" =$SAM}
+            if ($IgnoreLogins){
+                if (($IgnoreLogins.SAM.IndexOf($SAM) -ge 0) -Or
+                    ($IgnoreLogins.UPN.IndexOf($UPN) -ge 0)){
+                    continue
+                }    
+            } 
+
+            Return @{"UPN"=$UPN;"SAM" =$SAM}
         }
     }
     Log-Critical("Can't create UPN")

@@ -13,7 +13,7 @@ $LocalDir = $MyInvocation.MyCommand.Definition | split-path -parent
 . $LocalDir\Import-AllRun.ps1
 
 
-Log-Set -Service "SetADPatch" -Url $C.dashing.url -Token $C.dashing.token 
+Log-Set -Service "SetADPatch" -Url $C.dashing.url -Token $C.dashing.token -Asynchron
 Log-Begin
 
 # yesterday
@@ -25,7 +25,7 @@ $FileName = "$($C.patch.folder)\$Date.adpatch"
 $Lines = Get-Content $FileName
 
 foreach ($Line in $Lines) {
-    Log("$($Lines.IndexOf($Line)+1) of $($Lines.count): $Line")        
+    Echo "$($Lines.IndexOf($Line)+1) of $($Lines.count): $Line"        
     Invoke-Expression $Line
 }
 

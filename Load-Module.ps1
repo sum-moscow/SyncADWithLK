@@ -19,9 +19,9 @@ Function Load-Module {
         [string] $name
     )
 
-    if (Get-Module -Name $name){ 
-        return $true
-    } else {
+#    if (Get-Module -Name $name){ 
+#        return $true
+#    } else {
         $retVal = Get-Module -ListAvailable | where { $_.Name -eq $name }
         if ($retVal){
             try {
@@ -29,7 +29,7 @@ Function Load-Module {
                 return $true
             } catch { }
         } 
-    }
+#    }
 
     return $false
 }
